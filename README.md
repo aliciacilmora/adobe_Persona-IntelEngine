@@ -1,6 +1,6 @@
 # Project: Persona-Intel Engine (Adobe Hackathon - Round 1B)
 
-**Participant:** [Your Name / Team Name]
+**Participant:** Tnit
 
 ## Overview
 
