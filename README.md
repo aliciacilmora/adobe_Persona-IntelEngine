@@ -30,4 +30,10 @@ The solution is fully containerized and designed for offline execution.
 The build process will download the ML model (~80MB) and bake it into the image. This may take a few minutes and requires an internet connection *only for the build step*.
 
 ```bash
-docker build --platform linux/amd64 -t persona-intel-engine:1b .
+python3 -m venv parse
+source ./parse/bin/activate
+pip3 install sentence-transformers==5.0.0
+python3 download_model.py
+chmod +x run_all_test.sh
+./run_all_test.sh
+```
