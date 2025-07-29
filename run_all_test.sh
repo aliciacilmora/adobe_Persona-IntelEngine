@@ -42,6 +42,7 @@ for collection_dir in "$INPUT_BASE_DIR"/*/; do
         # to the container's /app/data directory.
         docker run --rm \
           -v "$test_case_path":/app/data \
+          --network none \
           $IMAGE_NAME
           
         # Check if the output file was created

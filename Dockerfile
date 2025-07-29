@@ -1,49 +1,30 @@
-# --- Stage 1: Builder ---
-FROM python:3.9.18-slim-bullseye as builder
+FROM python:3.9.18-slim-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_NO_CACHE_DIR=1
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    git \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Copy requirements
 COPY requirements.txt .
 
-RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu \
-    torch==1.13.1 \
-    -r requirements.txt
+# Install torch first, using the CPU wheel index
+RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.1.0
 
-# ✅ Save the model locally so it can be reused in the final image
-RUN python -c "\
-from sentence_transformers import SentenceTransformer; \
-model = SentenceTransformer('all-MiniLM-L6-v2'); \
-model.save('/app/model')"
+# Install other Python dependencies
+RUN pip install -r requirements.txt
 
-
-# --- Stage 2: Final Runtime Image ---
-FROM python:3.9.18-slim-bullseye
-
-WORKDIR /app
-
-# Copy Python packages
-COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
-
-# ✅ Copy the pre-saved model
-COPY --from=builder /app/model /app/model
-
-# Optional: If you really want to preserve Hugging Face cache as well:
-# COPY --from=builder /root/.cache /root/.cache
-
-# Copy your Python application
+# Copy model (already downloaded) and app code
+COPY model_cache /app/model
 COPY parser.py .
 
-# ✅ Offline-safe model loading path
+# Tell the app where to find the model
 ENV MODEL_PATH=/app/model
 
-# Run the app
+# Run the parser
 CMD ["python", "parser.py"]
